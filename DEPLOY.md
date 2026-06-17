@@ -17,7 +17,8 @@ Instala las siguientes herramientas si no las tienes:
 ## Paso 1 – Iniciar Minikube
 
 ```bash
-minikube start --memory=6144 --cpus=4
+#minikube start --memory=6144 --cpus=4
+minikube start --memory=6144 --cpus=4 --driver=docker 
 ```
 
 > **Importante:** Los microservicios y las bases de datos consumen bastante RAM.
@@ -34,6 +35,8 @@ kubectl get nodes
 
 Con este paso las imágenes que construyas quedan disponibles directamente
 dentro del cluster **sin necesidad de un registry externo**.
+
+Abre la interfaz gráfica de Docker Desktop.
 
 **En PowerShell (Windows):**
 ```powershell
