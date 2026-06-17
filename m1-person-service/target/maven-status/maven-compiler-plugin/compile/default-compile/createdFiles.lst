@@ -1,0 +1,6 @@
+com\travel\app\repositories\PersonRepository.class
+com\travel\app\controllers\PersonController.class
+com\travel\app\AppApplication.class
+com\travel\app\entities\PersonEntity.class
+com\travel\app\services\PersonService.class
+com\travel\app\config\SecurityConfig.class
