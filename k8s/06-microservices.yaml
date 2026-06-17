@@ -1,0 +1,469 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Env compartido (para reutilizar en todos los microservicios)
+#  Se referencia desde cada Deployment via envFrom + env específicas
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── M1 – Person Service ───────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m1-person-service
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m1-person-service
+  template:
+    metadata:
+      labels:
+        app: m1-person-service
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z mysql-m1 3306; do echo waiting for mysql-m1; sleep 3; done']
+      containers:
+        - name: m1-person-service
+          image: travel/m1-person-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081   # management port (server.port=0 es dinámico)
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: DB_HOST
+              value: "mysql-m1"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: EUREKA_INSTANCE_IPADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m1-person-service
+  namespace: travel-agency
+spec:
+  selector:
+    app: m1-person-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+# ── M2 – Package Service ──────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m2-package-service
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m2-package-service
+  template:
+    metadata:
+      labels:
+        app: m2-package-service
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z mysql-m2 3306; do echo waiting for mysql-m2; sleep 3; done']
+      containers:
+        - name: m2-package-service
+          image: travel/m2-package-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: DB_HOST
+              value: "mysql-m2"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: EUREKA_INSTANCE_IPADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m2-package-service
+  namespace: travel-agency
+spec:
+  selector:
+    app: m2-package-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+# ── M3 – Search Service (sin base de datos propia) ───────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m3-search-service
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m3-search-service
+  template:
+    metadata:
+      labels:
+        app: m3-search-service
+    spec:
+      containers:
+        - name: m3-search-service
+          image: travel/m3-search-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: EUREKA_INSTANCE_IPADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m3-search-service
+  namespace: travel-agency
+spec:
+  selector:
+    app: m3-search-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+# ── M4 – Reservation Service ──────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m4-reservation-service
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m4-reservation-service
+  template:
+    metadata:
+      labels:
+        app: m4-reservation-service
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z mysql-m4 3306; do echo waiting for mysql-m4; sleep 3; done']
+      containers:
+        - name: m4-reservation-service
+          image: travel/m4-reservation-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: DB_HOST
+              value: "mysql-m4"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: EUREKA_INSTANCE_IPADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m4-reservation-service
+  namespace: travel-agency
+spec:
+  selector:
+    app: m4-reservation-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+# ── M5 – Payment Service ──────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m5-payment-service
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m5-payment-service
+  template:
+    metadata:
+      labels:
+        app: m5-payment-service
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z mysql-m5 3306; do echo waiting for mysql-m5; sleep 3; done']
+      containers:
+        - name: m5-payment-service
+          image: travel/m5-payment-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: DB_HOST
+              value: "mysql-m5"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: EUREKA_INSTANCE_IPADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m5-payment-service
+  namespace: travel-agency
+spec:
+  selector:
+    app: m5-payment-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+# ── M6 – Confirmation Service ─────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m6-confirmation-service
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m6-confirmation-service
+  template:
+    metadata:
+      labels:
+        app: m6-confirmation-service
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command: ['sh', '-c', 'until nc -z mysql-m6 3306; do echo waiting for mysql-m6; sleep 3; done']
+      containers:
+        - name: m6-confirmation-service
+          image: travel/m6-confirmation-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: DB_HOST
+              value: "mysql-m6"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: EUREKA_INSTANCE_IPADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m6-confirmation-service
+  namespace: travel-agency
+spec:
+  selector:
+    app: m6-confirmation-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+# ── M7 – Report Service (sin base de datos propia) ───────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m7-report-service
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m7-report-service
+  template:
+    metadata:
+      labels:
+        app: m7-report-service
+    spec:
+      containers:
+        - name: m7-report-service
+          image: travel/m7-report-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: EUREKA_INSTANCE_IPADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m7-report-service
+  namespace: travel-agency
+spec:
+  selector:
+    app: m7-report-service
+  ports:
+    - port: 8081
+      targetPort: 8081

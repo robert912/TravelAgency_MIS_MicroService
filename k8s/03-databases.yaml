@@ -1,0 +1,334 @@
+# ─────────────────────────────────────────────────
+#  MySQL para M1 - Person Service
+# ─────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-m1-pvc
+  namespace: travel-agency
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-m1
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-m1
+  template:
+    metadata:
+      labels:
+        app: mysql-m1
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: MYSQL_DATABASE
+              value: db_m1_person
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql-m1-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-m1
+  namespace: travel-agency
+spec:
+  selector:
+    app: mysql-m1
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+# ─────────────────────────────────────────────────
+#  MySQL para M2 - Package Service
+# ─────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-m2-pvc
+  namespace: travel-agency
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-m2
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-m2
+  template:
+    metadata:
+      labels:
+        app: mysql-m2
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: MYSQL_DATABASE
+              value: db_m2_package
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql-m2-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-m2
+  namespace: travel-agency
+spec:
+  selector:
+    app: mysql-m2
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+# ─────────────────────────────────────────────────
+#  MySQL para M4 - Reservation Service
+# ─────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-m4-pvc
+  namespace: travel-agency
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-m4
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-m4
+  template:
+    metadata:
+      labels:
+        app: mysql-m4
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: MYSQL_DATABASE
+              value: db_m4_reservation
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql-m4-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-m4
+  namespace: travel-agency
+spec:
+  selector:
+    app: mysql-m4
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+# ─────────────────────────────────────────────────
+#  MySQL para M5 - Payment Service
+# ─────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-m5-pvc
+  namespace: travel-agency
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-m5
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-m5
+  template:
+    metadata:
+      labels:
+        app: mysql-m5
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: MYSQL_DATABASE
+              value: db_m5_payment
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql-m5-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-m5
+  namespace: travel-agency
+spec:
+  selector:
+    app: mysql-m5
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+# ─────────────────────────────────────────────────
+#  MySQL para M6 - Confirmation Service
+# ─────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-m6-pvc
+  namespace: travel-agency
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-m6
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-m6
+  template:
+    metadata:
+      labels:
+        app: mysql-m6
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: db-password
+            - name: MYSQL_DATABASE
+              value: db_m6_confirmation
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql-m6-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-m6
+  namespace: travel-agency
+spec:
+  selector:
+    app: mysql-m6
+  ports:
+    - port: 3306
+      targetPort: 3306
