@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/travel-types")
-@CrossOrigin("*")
 public class TravelTypeController {
 
     @Autowired
@@ -18,14 +17,12 @@ public class TravelTypeController {
 
     @GetMapping("/")
     public ResponseEntity<List<TravelTypeEntity>> listTravelTypes() {
-        List<TravelTypeEntity> list = travelTypeService.getTravelTypes();
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(travelTypeService.getTravelTypes());
     }
 
     @GetMapping("/active")
     public ResponseEntity<List<TravelTypeEntity>> listTravelTypesActive() {
-        List<TravelTypeEntity> list = travelTypeService.getTravelTypesActive();
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(travelTypeService.getTravelTypesActive());
     }
 
     @GetMapping("/{id}")
@@ -36,14 +33,11 @@ public class TravelTypeController {
 
     @PostMapping("/")
     public ResponseEntity<TravelTypeEntity> save(@RequestBody TravelTypeEntity travelType) {
-        TravelTypeEntity newTravelType = travelTypeService.saveTravelType(travelType);
-        return ResponseEntity.ok(newTravelType);
+        return ResponseEntity.ok(travelTypeService.saveTravelType(travelType));
     }
 
     @PutMapping("/")
     public ResponseEntity<TravelTypeEntity> update(@RequestBody TravelTypeEntity travelType) {
-        TravelTypeEntity updatedTravelType = travelTypeService.updateTravelType(travelType);
-        return ResponseEntity.ok(updatedTravelType);
+        return ResponseEntity.ok(travelTypeService.updateTravelType(travelType));
     }
-    
 }

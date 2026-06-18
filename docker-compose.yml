@@ -12,10 +12,11 @@ services:
     volumes:
       - mysql-m1-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
       interval: 10s
       timeout: 5s
-      retries: 8
+      retries: 12
+      start_period: 40s
 
   mysql-m2:
     image: mysql:8.0
@@ -25,10 +26,11 @@ services:
     volumes:
       - mysql-m2-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
       interval: 10s
       timeout: 5s
-      retries: 8
+      retries: 12
+      start_period: 40s
 
   mysql-m4:
     image: mysql:8.0
@@ -38,10 +40,11 @@ services:
     volumes:
       - mysql-m4-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
       interval: 10s
       timeout: 5s
-      retries: 8
+      retries: 12
+      start_period: 40s
 
   mysql-m5:
     image: mysql:8.0
@@ -51,10 +54,11 @@ services:
     volumes:
       - mysql-m5-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
       interval: 10s
       timeout: 5s
-      retries: 8
+      retries: 12
+      start_period: 40s
 
   mysql-m6:
     image: mysql:8.0
@@ -64,10 +68,11 @@ services:
     volumes:
       - mysql-m6-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
       interval: 10s
       timeout: 5s
-      retries: 8
+      retries: 12
+      start_period: 40s
 
   # ══════════════════════════════════════════════════════
   #  INFRAESTRUCTURA
@@ -78,7 +83,6 @@ services:
     image: travel/eureka-server:latest
     ports:
       - "8761:8761"
-    # Eureka arranca sin depender de Config Server
     environment:
       SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
     healthcheck:
@@ -148,7 +152,6 @@ services:
       SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
       MANAGEMENT_SERVER_PORT: "8081"
-      # Sin DB propia - agrega paquetes via RestTemplate a M2/M4
       SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration"
     depends_on:
       config-server:
@@ -209,10 +212,37 @@ services:
       SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
       MANAGEMENT_SERVER_PORT: "8081"
-      # Sin DB propia - agrega datos via RestTemplate a M4/M5
     depends_on:
       config-server:
         condition: service_healthy
+
+  # ══════════════════════════════════════════════════════
+  #  KEYCLOAK  (Identity Provider local)
+  # ══════════════════════════════════════════════════════
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: travel-keycloak
+    command: start-dev --import-realm --http-port=9090
+    environment:
+      KC_DB: dev-file
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_URL: http://localhost:9090
+      KC_HOSTNAME_ADMIN_URL: http://localhost:9090
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+    volumes:
+      - ./keycloak/travel-realm-realm.json:/opt/keycloak/data/import/travel-realm-realm.json
+      - ./keycloak/travelapp:/opt/keycloak/themes/travelapp
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/realms/travel-realm || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 120s
 
   # ══════════════════════════════════════════════════════
   #  API GATEWAY  (único punto de acceso externo)
@@ -229,6 +259,21 @@ services:
     depends_on:
       config-server:
         condition: service_healthy
+
+  # ══════════════════════════════════════════════════════
+  #  FRONTEND  (imagen pre-construida con URLs locales)
+  # ══════════════════════════════════════════════════════
+
+  frontend:
+    image: robert912/travelagency-frontend:latest
+    ports:
+      - "5173:80"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
+    restart: unless-stopped
 
 # ══════════════════════════════════════════════════════
 #  VOLÚMENES  (datos persistentes entre reinicios)

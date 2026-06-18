@@ -10,7 +10,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/confirmations")
-@CrossOrigin("*")
 public class ConfirmationController {
 
     @Autowired

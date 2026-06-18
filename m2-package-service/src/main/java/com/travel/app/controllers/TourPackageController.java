@@ -8,13 +8,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tour-packages")
-@CrossOrigin("*")
 public class TourPackageController {
 
     @Autowired
@@ -22,14 +19,12 @@ public class TourPackageController {
 
     @GetMapping("/")
     public ResponseEntity<List<TourPackageEntity>> listTourPackages() {
-        List<TourPackageEntity> tourPackages = tourPackageService.getTourPackages();
-        return ResponseEntity.ok(tourPackages);
+        return ResponseEntity.ok(tourPackageService.getTourPackages());
     }
 
     @GetMapping("/active")
     public ResponseEntity<List<TourPackageEntity>> listTourPackagesActive() {
-        List<TourPackageEntity> tourPackages = tourPackageService.getTourPackagesActive();
-        return ResponseEntity.ok(tourPackages);
+        return ResponseEntity.ok(tourPackageService.getTourPackagesActive());
     }
 
     @GetMapping("/{id}")
@@ -47,21 +42,17 @@ public class TourPackageController {
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(required = false) Long travelTypeId
     ) {
-        List<TourPackageEntity> filteredPackages = tourPackageService.filterTourPackages(
-                destination, minPrice, maxPrice, startDate, endDate, travelTypeId);
-
-        return ResponseEntity.ok(filteredPackages);
+        return ResponseEntity.ok(tourPackageService.filterTourPackages(
+                destination, minPrice, maxPrice, startDate, endDate, travelTypeId));
     }
 
     @PostMapping("/")
     public ResponseEntity<TourPackageEntity> saveTourPackage(@RequestBody TourPackageEntity tourPackage) {
-        TourPackageEntity newTourPackage = tourPackageService.saveTourPackage(tourPackage);
-        return ResponseEntity.ok(newTourPackage);
+        return ResponseEntity.ok(tourPackageService.saveTourPackage(tourPackage));
     }
 
     @PutMapping("/")
     public ResponseEntity<TourPackageEntity> updateTourPackage(@RequestBody TourPackageEntity tourPackage) {
-        TourPackageEntity updatedTourPackage = tourPackageService.updateTourPackage(tourPackage);
-        return ResponseEntity.ok(updatedTourPackage);
+        return ResponseEntity.ok(tourPackageService.updateTourPackage(tourPackage));
     }
 }

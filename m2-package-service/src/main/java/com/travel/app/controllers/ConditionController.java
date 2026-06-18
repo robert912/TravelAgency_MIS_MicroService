@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/conditions")
-@CrossOrigin("*")
 public class ConditionController {
 
     @Autowired

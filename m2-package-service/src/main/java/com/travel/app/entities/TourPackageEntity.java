@@ -1,7 +1,6 @@
 package com.travel.app.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.travel.app.enums.PackageStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -33,15 +32,16 @@ public class TourPackageEntity {
     @Column(nullable = false)
     private String destination;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER: son catálogos pequeños, se cargan siempre con el paquete
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "season_id", nullable = false)
     private SeasonEntity season;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     private CategoryEntity category;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "travel_type_id", nullable = false)
     private TravelTypeEntity travelType;
 
@@ -110,17 +110,19 @@ public class TourPackageEntity {
         }
     }
 
-    @JsonManagedReference
+    // @JsonIgnore: se exponen por sus propios endpoints (/api/tour-package-conditions, etc.)
+    // y evita LazyInitializationException al serializar
+    @JsonIgnore
     @OneToMany(mappedBy = "tourPackage", cascade = CascadeType.ALL)
     @SQLRestriction("active = 1")
     private List<TourPackageConditionEntity> conditions;
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(mappedBy = "tourPackage", cascade = CascadeType.ALL)
     @SQLRestriction("active = 1")
     private List<TourPackageRestrictionEntity> restrictions;
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(mappedBy = "tourPackage", cascade = CascadeType.ALL)
     @SQLRestriction("active = 1")
     private List<TourPackageServiceEntity> services;

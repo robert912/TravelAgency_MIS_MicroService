@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/restrictions")
-@CrossOrigin("*")
 public class RestrictionController {
 
     @Autowired

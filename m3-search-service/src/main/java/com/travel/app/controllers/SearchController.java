@@ -15,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tour-packages")
-@CrossOrigin("*")
 public class SearchController {
 
     @Autowired

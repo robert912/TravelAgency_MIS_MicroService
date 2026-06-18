@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tour-package-conditions")
-@CrossOrigin("*")
 public class TourPackageConditionController {
 
     @Autowired
