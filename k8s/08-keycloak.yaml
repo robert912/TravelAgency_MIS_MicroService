@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: travel/keycloak:latest
-          imagePullPolicy: Never
+          image: robert912/keycloak:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9090
           env:
@@ -31,6 +31,10 @@ spec:
               value: "admin"
             - name: KEYCLOAK_ADMIN_PASSWORD
               value: "admin"
+            - name: KC_HOSTNAME_URL
+              value: "http://172.23.252.25:30091"
+            - name: KC_HOSTNAME_ADMIN_URL
+              value: "http://172.23.252.25:30091"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HOSTNAME_STRICT_BACKCHANNEL

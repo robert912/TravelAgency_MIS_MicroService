@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: travel/config-server:latest
-          imagePullPolicy: Never
+          image: robert912/config-server:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8888
           env:

@@ -1,6 +1,6 @@
 # ══════════════════════════════════════════════════════════════════════════════
 #  Frontend React (Vite + nginx)
-#  Imagen: travel/frontend:latest  (construida con la IP de minikube)
+#  Imagen: robert912/travelagency-frontend (Docker Hub)
 #  Acceso externo: http://<minikube-ip>:30080
 # ══════════════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: travel/frontend:latest
-          imagePullPolicy: Never
+          image: robert912/travelmicro-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           readinessProbe:

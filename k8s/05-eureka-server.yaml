@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: eureka-server
-          image: travel/eureka-server:latest
-          imagePullPolicy: Never
+          image: robert912/eureka-server:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8761
           env:

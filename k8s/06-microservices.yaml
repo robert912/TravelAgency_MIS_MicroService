@@ -25,8 +25,8 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql-m1 3306; do echo waiting for mysql-m1; sleep 3; done']
       containers:
         - name: m1-person-service
-          image: travel/m1-person-service:latest
-          imagePullPolicy: Never
+          image: robert912/m1-person-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081   # management port (server.port=0 es dinámico)
           envFrom:
@@ -96,8 +96,8 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql-m2 3306; do echo waiting for mysql-m2; sleep 3; done']
       containers:
         - name: m2-package-service
-          image: travel/m2-package-service:latest
-          imagePullPolicy: Never
+          image: robert912/m2-package-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:
@@ -163,8 +163,8 @@ spec:
     spec:
       containers:
         - name: m3-search-service
-          image: travel/m3-search-service:latest
-          imagePullPolicy: Never
+          image: robert912/m3-search-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:
@@ -224,8 +224,8 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql-m4 3306; do echo waiting for mysql-m4; sleep 3; done']
       containers:
         - name: m4-reservation-service
-          image: travel/m4-reservation-service:latest
-          imagePullPolicy: Never
+          image: robert912/m4-reservation-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:
@@ -295,8 +295,8 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql-m5 3306; do echo waiting for mysql-m5; sleep 3; done']
       containers:
         - name: m5-payment-service
-          image: travel/m5-payment-service:latest
-          imagePullPolicy: Never
+          image: robert912/m5-payment-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:
@@ -366,8 +366,8 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql-m6 3306; do echo waiting for mysql-m6; sleep 3; done']
       containers:
         - name: m6-confirmation-service
-          image: travel/m6-confirmation-service:latest
-          imagePullPolicy: Never
+          image: robert912/m6-confirmation-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:
@@ -433,8 +433,8 @@ spec:
     spec:
       containers:
         - name: m7-report-service
-          image: travel/m7-report-service:latest
-          imagePullPolicy: Never
+          image: robert912/m7-report-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:
