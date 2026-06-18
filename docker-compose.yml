@@ -260,21 +260,6 @@ services:
       config-server:
         condition: service_healthy
 
-  # ══════════════════════════════════════════════════════
-  #  FRONTEND  (imagen pre-construida con URLs locales)
-  # ══════════════════════════════════════════════════════
-
-  frontend:
-    image: robert912/travelagency-frontend:latest
-    ports:
-      - "5173:80"
-    depends_on:
-      keycloak:
-        condition: service_healthy
-      api-gateway:
-        condition: service_started
-    restart: unless-stopped
-
 # ══════════════════════════════════════════════════════
 #  VOLÚMENES  (datos persistentes entre reinicios)
 # ══════════════════════════════════════════════════════
