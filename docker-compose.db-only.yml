@@ -1,0 +1,98 @@
+# ──────────────────────────────────────────────────────────────────────────
+#  Solo bases de datos — para desarrollo en IntelliJ o VS Code
+#
+#  Uso:
+#    docker compose -f docker-compose.db-only.yml up -d
+#
+#  Luego corre cada microservicio en tu IDE con estas env vars:
+#    DB_HOST=localhost
+#    DB_PORT=<ver tabla abajo>
+#    DB_USER=root
+#    DB_PASSWORD=12345678
+#
+#  Puertos expuestos al host:
+#    M1 (db_m1_person)      → localhost:3311
+#    M2 (db_m2_package)     → localhost:3312
+#    M4 (db_m4_reservation) → localhost:3314
+#    M5 (db_m5_payment)     → localhost:3315
+#    M6 (db_m6_confirmation)→ localhost:3316
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+
+  mysql-m1:
+    image: mysql:8.0
+    ports:
+      - "3311:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m1_person
+    volumes:
+      - mysql-m1-dev-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      retries: 6
+
+  mysql-m2:
+    image: mysql:8.0
+    ports:
+      - "3312:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m2_package
+    volumes:
+      - mysql-m2-dev-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      retries: 6
+
+  mysql-m4:
+    image: mysql:8.0
+    ports:
+      - "3314:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m4_reservation
+    volumes:
+      - mysql-m4-dev-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      retries: 6
+
+  mysql-m5:
+    image: mysql:8.0
+    ports:
+      - "3315:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m5_payment
+    volumes:
+      - mysql-m5-dev-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      retries: 6
+
+  mysql-m6:
+    image: mysql:8.0
+    ports:
+      - "3316:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m6_confirmation
+    volumes:
+      - mysql-m6-dev-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      retries: 6
+
+volumes:
+  mysql-m1-dev-data:
+  mysql-m2-dev-data:
+  mysql-m4-dev-data:
+  mysql-m5-dev-data:
+  mysql-m6-dev-data:

@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface PersonRepository extends JpaRepository<PersonEntity,Long> {
     List<PersonEntity> findByActive(Integer active);
-    PersonEntity findByIdentification(String identification, Integer active);
-    PersonEntity findByEmail(String email, Integer active);
+    PersonEntity findByIdentificationAndActive(String identification, Integer active);
+    PersonEntity findByEmailAndActive(String email, Integer active);
 }

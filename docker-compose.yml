@@ -1,0 +1,242 @@
+services:
+
+  # ══════════════════════════════════════════════════════
+  #  BASES DE DATOS  (una por microservicio con DB propia)
+  # ══════════════════════════════════════════════════════
+
+  mysql-m1:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m1_person
+    volumes:
+      - mysql-m1-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  mysql-m2:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m2_package
+    volumes:
+      - mysql-m2-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  mysql-m4:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m4_reservation
+    volumes:
+      - mysql-m4-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  mysql-m5:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m5_payment
+    volumes:
+      - mysql-m5-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  mysql-m6:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: db_m6_confirmation
+    volumes:
+      - mysql-m6-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p12345678"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  # ══════════════════════════════════════════════════════
+  #  INFRAESTRUCTURA
+  # ══════════════════════════════════════════════════════
+
+  eureka-server:
+    build: ./eureka-server
+    image: travel/eureka-server:latest
+    ports:
+      - "8761:8761"
+    # Eureka arranca sin depender de Config Server
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  config-server:
+    build: ./config-server
+    image: travel/config-server:latest
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  # ══════════════════════════════════════════════════════
+  #  MICROSERVICIOS  M1 – M7
+  # ══════════════════════════════════════════════════════
+
+  m1-person-service:
+    build: ./m1-person-service
+    image: travel/m1-person-service:latest
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      MANAGEMENT_SERVER_PORT: "8081"
+      DB_HOST: mysql-m1
+      DB_USER: root
+      DB_PASSWORD: "12345678"
+    depends_on:
+      mysql-m1:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  m2-package-service:
+    build: ./m2-package-service
+    image: travel/m2-package-service:latest
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      MANAGEMENT_SERVER_PORT: "8081"
+      DB_HOST: mysql-m2
+      DB_USER: root
+      DB_PASSWORD: "12345678"
+    depends_on:
+      mysql-m2:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  m3-search-service:
+    build: ./m3-search-service
+    image: travel/m3-search-service:latest
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      MANAGEMENT_SERVER_PORT: "8081"
+      # Sin DB propia - agrega paquetes via RestTemplate a M2/M4
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration"
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  m4-reservation-service:
+    build: ./m4-reservation-service
+    image: travel/m4-reservation-service:latest
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      MANAGEMENT_SERVER_PORT: "8081"
+      DB_HOST: mysql-m4
+      DB_USER: root
+      DB_PASSWORD: "12345678"
+    depends_on:
+      mysql-m4:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  m5-payment-service:
+    build: ./m5-payment-service
+    image: travel/m5-payment-service:latest
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      MANAGEMENT_SERVER_PORT: "8081"
+      DB_HOST: mysql-m5
+      DB_USER: root
+      DB_PASSWORD: "12345678"
+    depends_on:
+      mysql-m5:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  m6-confirmation-service:
+    build: ./m6-confirmation-service
+    image: travel/m6-confirmation-service:latest
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      MANAGEMENT_SERVER_PORT: "8081"
+      DB_HOST: mysql-m6
+      DB_USER: root
+      DB_PASSWORD: "12345678"
+    depends_on:
+      mysql-m6:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  m7-report-service:
+    build: ./m7-report-service
+    image: travel/m7-report-service:latest
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      MANAGEMENT_SERVER_PORT: "8081"
+      # Sin DB propia - agrega datos via RestTemplate a M4/M5
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  # ══════════════════════════════════════════════════════
+  #  API GATEWAY  (único punto de acceso externo)
+  # ══════════════════════════════════════════════════════
+
+  api-gateway:
+    build: ./api-gateway
+    image: travel/api-gateway:latest
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+# ══════════════════════════════════════════════════════
+#  VOLÚMENES  (datos persistentes entre reinicios)
+# ══════════════════════════════════════════════════════
+
+volumes:
+  mysql-m1-data:
+  mysql-m2-data:
+  mysql-m4-data:
+  mysql-m5-data:
+  mysql-m6-data:

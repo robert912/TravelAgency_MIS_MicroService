@@ -22,11 +22,11 @@ public class PersonService {
     }
 
     public PersonEntity findByIdentification(String identification) {
-        return personRepository.findByIdentification(identification, 1);
+        return personRepository.findByIdentificationAndActive(identification, 1);
     }
 
     public PersonEntity findByEmail(String email) {
-        return personRepository.findByEmail(email, 1);
+        return personRepository.findByEmailAndActive(email, 1);
     }
 
     public PersonEntity savePerson(PersonEntity person) {
