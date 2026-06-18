@@ -926,8 +926,8 @@
       "clientId": "travel-frontend",
       "name": "",
       "description": "",
-      "rootUrl": "http://172.23.252.25:30080",
-      "adminUrl": "http://172.23.252.25:30080",
+      "rootUrl": "http://172.23.243.112:30080",
+      "adminUrl": "http://172.23.243.112:30080",
       "baseUrl": "",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -935,11 +935,11 @@
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
         "http://localhost:5173/*",
-        "http://172.23.252.25:30080/*"
+        "http://172.23.243.112:30080/*"
       ],
       "webOrigins": [
         "http://localhost:5173",
-        "http://172.23.252.25:30080"
+        "http://172.23.243.112:30080"
       ],
       "notBefore": 0,
       "bearerOnly": false,
