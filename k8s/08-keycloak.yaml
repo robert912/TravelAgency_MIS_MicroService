@@ -1,0 +1,71 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  Keycloak — Identity Provider
+#  Imagen custom que embebe el realm y el tema (travel/keycloak:latest)
+#  Acceso externo: http://<minikube-ip>:30091
+# ══════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: travel-agency
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: travel/keycloak:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9090
+          env:
+            - name: KC_DB
+              value: "dev-file"
+            - name: KEYCLOAK_ADMIN
+              value: "admin"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: "admin"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_STRICT_BACKCHANNEL
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /realms/travel-realm
+              port: 9090
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /realms/travel-realm
+              port: 9090
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: travel-agency
+spec:
+  type: NodePort
+  selector:
+    app: keycloak
+  ports:
+    - port: 9090
+      targetPort: 9090
+      nodePort: 30091

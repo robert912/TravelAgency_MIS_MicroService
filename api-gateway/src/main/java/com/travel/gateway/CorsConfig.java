@@ -22,6 +22,7 @@ public class CorsConfig {
         config.setAllowedOrigins(List.of(
             "http://localhost:5173",
             "http://localhost",
+            "http://192.168.49.2:30080",
             "https://travel.trebolapp.cl"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

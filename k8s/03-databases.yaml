@@ -45,7 +45,7 @@ spec:
               mountPath: /var/lib/mysql
           readinessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
             initialDelaySeconds: 20
             periodSeconds: 10
       volumes:
@@ -112,7 +112,7 @@ spec:
               mountPath: /var/lib/mysql
           readinessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
             initialDelaySeconds: 20
             periodSeconds: 10
       volumes:
@@ -179,7 +179,7 @@ spec:
               mountPath: /var/lib/mysql
           readinessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
             initialDelaySeconds: 20
             periodSeconds: 10
       volumes:
@@ -246,7 +246,7 @@ spec:
               mountPath: /var/lib/mysql
           readinessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
             initialDelaySeconds: 20
             periodSeconds: 10
       volumes:
@@ -313,7 +313,7 @@ spec:
               mountPath: /var/lib/mysql
           readinessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=12345678", "--silent"]
             initialDelaySeconds: 20
             periodSeconds: 10
       volumes:
