@@ -1,71 +1,92 @@
 # ============================================================
 #  deploy-minikube.ps1
-#  Despliega toda la aplicación Travel Agency en minikube
-#  Ejecutar desde la carpeta TravelAgency_MIS_MicroService:
+#  1. Obtiene la IP de minikube
+#  2. Actualiza archivos si la IP cambio
+#  3. PARA minikube (libera RAM)
+#  4. Hace build + push a Docker Hub
+#  5. REINICIA minikube (misma IP)
+#  6. Muestra comandos kubectl a ejecutar manualmente
+#
+#  Uso:
 #    cd TravelAgency_MIS_MicroService
 #    .\k8s\deploy-minikube.ps1
 # ============================================================
 
 $ErrorActionPreference = "Stop"
-$FRONTEND_DIR = "..\TravelAgency_MIS_frontend"
+$BACKEND_DIR  = Split-Path $PSScriptRoot   # carpeta TravelAgency_MIS_MicroService
+$FRONTEND_DIR = Resolve-Path (Join-Path $BACKEND_DIR "..\TravelAgency_MIS_frontend")
 
-Write-Host "`n=== 1. Verificando minikube ===" -ForegroundColor Cyan
-minikube status
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Iniciando minikube..." -ForegroundColor Yellow
-    minikube start --memory=6144 --cpus=4
+# ── 1. Obtener IP de minikube ─────────────────────────────────────────────────
+Write-Host "`n=== 1. Obteniendo IP de minikube ===" -ForegroundColor Cyan
+$NEW_IP = minikube ip 2>$null
+if (-not $NEW_IP) {
+    Write-Host "minikube no esta corriendo, iniciando..." -ForegroundColor Yellow
+    minikube start
+    $NEW_IP = minikube ip
+}
+Write-Host "IP actual: $NEW_IP" -ForegroundColor Green
+
+# ── 2. Detectar IP anterior y actualizar archivos si cambio ──────────────────
+$envFile = "$FRONTEND_DIR\.env"
+$envContent = Get-Content $envFile -Raw
+if ($envContent -match 'VITE_API_URL=http://([\d.]+):') {
+    $OLD_IP = $matches[1]
+} else {
+    $OLD_IP = "NONE"
 }
 
-# Apuntar Docker al daemon de minikube (las imágenes se construyen dentro de minikube)
-Write-Host "`n=== 2. Configurando Docker -> minikube ===" -ForegroundColor Cyan
-& minikube -p minikube docker-env | Invoke-Expression
+if ($OLD_IP -ne $NEW_IP) {
+    Write-Host "`n=== 2. IP cambio ($OLD_IP -> $NEW_IP). Actualizando archivos ===" -ForegroundColor Yellow
 
-# Obtener IP de minikube
-$MINIKUBE_IP = minikube ip
-Write-Host "minikube IP: $MINIKUBE_IP" -ForegroundColor Green
+    (Get-Content $envFile -Raw) -replace $OLD_IP, $NEW_IP |
+        Set-Content $envFile -NoNewline
+    Write-Host "  [OK] $envFile"
 
-# URLs externas
-$API_URL      = "http://${MINIKUBE_IP}:30090"
-$KEYCLOAK_URL = "http://${MINIKUBE_IP}:30091"
+    $realmFile = "$BACKEND_DIR\keycloak\travel-realm-realm.json"
+    (Get-Content $realmFile -Raw) -replace $OLD_IP, $NEW_IP |
+        Set-Content $realmFile -NoNewline
+    Write-Host "  [OK] $realmFile"
 
-Write-Host "`n=== 3. Construyendo imágenes de microservicios ===" -ForegroundColor Cyan
-docker compose build
-Write-Host "Microservicios built ✓" -ForegroundColor Green
+    $keycloakYaml = "$BACKEND_DIR\k8s\08-keycloak.yaml"
+    (Get-Content $keycloakYaml -Raw) -replace $OLD_IP, $NEW_IP |
+        Set-Content $keycloakYaml -NoNewline
+    Write-Host "  [OK] $keycloakYaml"
+} else {
+    Write-Host "`n=== 2. IP sin cambios ($NEW_IP) ===" -ForegroundColor Green
+}
 
-Write-Host "`n=== 4. Construyendo imagen de Keycloak (con realm embebido) ===" -ForegroundColor Cyan
-docker build -t travel/keycloak:latest -f keycloak/Dockerfile keycloak/
-Write-Host "Keycloak built ✓" -ForegroundColor Green
+# ── 3. Parar minikube para liberar RAM durante los builds ────────────────────
+Write-Host "`n=== 3. Parando minikube para liberar RAM ===" -ForegroundColor Cyan
+minikube stop
+Write-Host "minikube detenido ✓" -ForegroundColor Green
 
-Write-Host "`n=== 5. Construyendo frontend con URLs de minikube ===" -ForegroundColor Cyan
-Push-Location $FRONTEND_DIR
-@"
-VITE_API_URL=$API_URL
-VITE_KEYCLOAK_URL=$KEYCLOAK_URL
-VITE_KEYCLOAK_REALM=travel-realm
-VITE_KEYCLOAK_CLIENT_ID=travel-frontend
-"@ | Set-Content .env.production
-Write-Host ".env.production escrito con IP $MINIKUBE_IP" -ForegroundColor Green
+# ── 4. Builds y push a Docker Hub ────────────────────────────────────────────
+Write-Host "`n=== 4. Build + push frontend ===" -ForegroundColor Cyan
+Set-Location $FRONTEND_DIR
 npm run build
-Pop-Location
-docker build -t travel/frontend:latest $FRONTEND_DIR
-Write-Host "Frontend built ✓" -ForegroundColor Green
+docker build -t robert912/travelmicro-frontend:latest .
+docker push robert912/travelmicro-frontend:latest
+Write-Host "Frontend pushed ✓" -ForegroundColor Green
 
-Write-Host "`n=== 6. Aplicando manifests de Kubernetes ===" -ForegroundColor Cyan
-kubectl apply -f k8s/
-Write-Host "Manifests aplicados ✓" -ForegroundColor Green
+Write-Host "`n=== 5. Build + push keycloak ===" -ForegroundColor Cyan
+Set-Location $BACKEND_DIR
+docker build -t robert912/keycloak:latest ./keycloak
+docker push robert912/keycloak:latest
+Write-Host "Keycloak pushed ✓" -ForegroundColor Green
 
-Write-Host "`n=== 7. Actualizando redirectUris de Keycloak en el realm ===" -ForegroundColor Yellow
-Write-Host "IMPORTANTE: Una vez que Keycloak esté listo, entra a:"
-Write-Host "  http://${MINIKUBE_IP}:30091  (admin / admin)"
-Write-Host "  Realm: travel-realm -> Clients -> travel-frontend -> Settings"
-Write-Host "  Agrega en 'Valid redirect URIs':  http://${MINIKUBE_IP}:30080/*"
-Write-Host "  Agrega en 'Web origins':          http://${MINIKUBE_IP}:30080"
+# ── 5. Reiniciar minikube (recupera la misma IP) ──────────────────────────────
+Write-Host "`n=== 6. Reiniciando minikube ===" -ForegroundColor Cyan
+minikube start
+Write-Host "minikube listo ✓" -ForegroundColor Green
 
-Write-Host "`n=== URLs de acceso ===" -ForegroundColor Green
-Write-Host "  Frontend  : http://${MINIKUBE_IP}:30080"
-Write-Host "  API Gateway: $API_URL"
-Write-Host "  Keycloak  : $KEYCLOAK_URL"
-Write-Host "  Eureka    : (interno, sin NodePort)"
+# ── 6. Instrucciones finales ──────────────────────────────────────────────────
+Write-Host "`n=== Listo. Ejecuta estos comandos para aplicar en Kubernetes: ===" -ForegroundColor Green
 Write-Host ""
-Write-Host "Para ver el estado de los pods:"
-Write-Host "  kubectl get pods -n travel-agency -w"
+Write-Host "  kubectl apply -f k8s\" -ForegroundColor White
+Write-Host "  kubectl rollout restart deployment/frontend deployment/keycloak -n travel-agency" -ForegroundColor White
+Write-Host "  kubectl get pods -n travel-agency" -ForegroundColor White
+Write-Host ""
+Write-Host "URLs cuando los pods esten listos:"
+Write-Host "  Frontend  : http://$NEW_IP`:30080"
+Write-Host "  API GW    : http://$NEW_IP`:30090"
+Write-Host "  Keycloak  : http://$NEW_IP`:30091"

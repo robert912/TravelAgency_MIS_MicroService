@@ -32,9 +32,9 @@ spec:
             - name: KEYCLOAK_ADMIN_PASSWORD
               value: "admin"
             - name: KC_HOSTNAME_URL
-              value: "http://172.23.243.112:30091"
+              value: "http://172.18.163.124:30091"
             - name: KC_HOSTNAME_ADMIN_URL
-              value: "http://172.23.243.112:30091"
+              value: "http://172.18.163.124:30091"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HOSTNAME_STRICT_BACKCHANNEL
